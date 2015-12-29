@@ -5,7 +5,6 @@ package com.hxl.miracle.myhttpapplication;
  */
 public class HttpServerURI {
 
-    public final static String baseUrl = "http://www.benlai.com/";
-
     public static final String IHome_GetAPPHomePage = "IHome/GetAPPHomePage";
+    public static String baseUrl = "http://192.168.60.210:9001/";
 }

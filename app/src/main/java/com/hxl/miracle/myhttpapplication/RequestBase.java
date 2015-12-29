@@ -121,14 +121,6 @@ public class RequestBase {
         }
     }
 
-    protected void startSimpleGetRequest(JsonHttpResponseHandler responseHandler) {
-        sendSimpleRequest(RequestMethod.GET, responseHandler);
-    }
-
-    protected void startSimplePostRequest(JsonHttpResponseHandler responseHandler) {
-        sendSimpleRequest(RequestMethod.POST, responseHandler);
-    }
-
     enum RequestMethod {
         GET,
         POST
