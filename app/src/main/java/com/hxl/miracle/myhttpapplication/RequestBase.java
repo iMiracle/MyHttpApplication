@@ -9,6 +9,8 @@ import com.loopj.android.http.JsonHttpResponseHandler;
 
 import org.json.JSONObject;
 
+import java.sql.Timestamp;
+
 /**
  * RequestBase 所有接口请求类的基类
  * 一般来说，请求返回的errorCode为"0"时，执行BLRequestCallback执行onSuccess方法
@@ -49,13 +51,15 @@ public class RequestBase {
         //获取完整的url链接
         String totalUrl = AsyncHttpClient.getUrlWithQueryString(false, mURL, mParams);
         Log.d("totalUrl", "totalUrl" + totalUrl);
-
+        final Timestamp beginTime = getTimestamp();
         JsonHttpResponseHandler responseHandler = new JsonHttpResponseHandler() {
 
             public void onFailureResponse() {
 
                 if (callback != null) {
+                    statReqInfo(mURL,beginTime,404,ERROR_MSG_NETWORK);
                     callback.onFailure(ERROR_CODE_NETWORK, ERROR_MSG_NETWORK, null);
+
                 }
             }
 
@@ -63,6 +67,7 @@ public class RequestBase {
             public void onSuccess(int statusCode, cz.msebera.android.httpclient.Header[] headers, JSONObject response) {
                 if (callback != null) {
                     if (response == null || response.toString().trim().length() == 0) {
+                        statReqInfo(mURL,beginTime,statusCode,response.toString());
                         callback.onFailure(ERROR_CODE_PARSE, ERROR_MSG_PARSE, null);
                         return;
                     }
@@ -71,11 +76,13 @@ public class RequestBase {
 
                     if (bean == null) {
                         callback.onFailure(ERROR_CODE_PARSE, ERROR_MSG_PARSE, null);
+                        statReqInfo(mURL, beginTime, statusCode, response.toString());
                         return;
                     }
 
                     String errorCode = bean.getError();
                     if (ERROR_CODE_NONE.equals(errorCode)) {
+                        statReqInfo(mURL,beginTime,Integer.valueOf(ERROR_CODE_NONE),bean.getData());
                         String data = null;
                         if (bean.getData() != null && !bean.getData().equals("[]")) {
                             data = bean.getData();
@@ -85,17 +92,20 @@ public class RequestBase {
                     }
 
                     String errorMsg = bean.getMessage();
+                    statReqInfo(mURL, beginTime, statusCode, errorMsg);
                     callback.onFailure(errorCode, errorMsg, bean);
                 }
             }
 
             @Override
             public void onFailure(int statusCode, cz.msebera.android.httpclient.Header[] headers, Throwable throwable, JSONObject errorResponse) {
+                statReqInfo(mURL, beginTime, statusCode, errorResponse.toString());
                 onFailureResponse();
             }
 
             @Override
             public void onFailure(int statusCode, cz.msebera.android.httpclient.Header[] headers, String responseString, Throwable throwable) {
+                statReqInfo(mURL, beginTime, statusCode, responseString);
                 onFailureResponse();
             }
         };
@@ -124,6 +134,15 @@ public class RequestBase {
     enum RequestMethod {
         GET,
         POST
+    }
+
+    private void statReqInfo(String reqUrl, Timestamp reqBegTime, int errorCode, String errorMsg){
+        HttpReqInfo info = new HttpReqInfo(reqUrl, reqBegTime, getTimestamp(), errorCode, errorMsg);
+        StatService.onHttpInfo(info);
+    }
+
+    public static Timestamp getTimestamp() {
+        return new Timestamp(System.currentTimeMillis());
     }
 
 }

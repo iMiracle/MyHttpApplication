@@ -8,6 +8,7 @@ import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
 
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -49,14 +50,17 @@ public class BLOkhttpClient {
     }
 
     public void executeRequest(final Request request, final BLOkRequestCallback blRequestCallback) {
+        final Timestamp beginTime = getTimestamp();
         mClient.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Request request, IOException e) {
+                statReqInfo(request.urlString(), beginTime, request.body().hashCode(), request.body().toString());
                 sendFailResultCallback(request, e, blRequestCallback);
             }
 
             @Override
             public void onResponse(Response response) throws IOException {
+                statReqInfo(response.request().urlString(), beginTime, response.code(),response.message());
                 sendSuccessResultCallback(request, response, blRequestCallback);
             }
         });
@@ -80,5 +84,14 @@ public class BLOkhttpClient {
 
     public void setTimeOut(int timeOut) {
         mClient.setConnectTimeout(timeOut, TimeUnit.SECONDS);
+    }
+
+    private void statReqInfo(String reqUrl, Timestamp reqBegTime, int errorCode, String errorMsg){
+        HttpReqInfo info = new HttpReqInfo(reqUrl, reqBegTime, getTimestamp(), errorCode, errorMsg);
+        StatService.onHttpInfo(info);
+    }
+
+    public static Timestamp getTimestamp() {
+        return new Timestamp(System.currentTimeMillis());
     }
 }

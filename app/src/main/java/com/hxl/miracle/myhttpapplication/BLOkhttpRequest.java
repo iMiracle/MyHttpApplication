@@ -60,6 +60,8 @@ public class BLOkhttpRequest {
         mUrl = appendParams(mUrl, params);
         Log.d("request", "mUrl:" + mUrl);
         request = new Request.Builder().url(mUrl).addHeader("user-agent", "android ").build();
+
+
         BLOkhttpClient client = BLOkhttpClient.getInstance();
 
         if (method == RequestMethod.GET) {
@@ -73,4 +75,5 @@ public class BLOkhttpRequest {
         GET,
         POST
     }
+
 }
