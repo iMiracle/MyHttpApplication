@@ -138,7 +138,6 @@ public class RequestBase {
 
     private void statReqInfo(String reqUrl, Timestamp reqBegTime, int errorCode, String errorMsg){
         HttpReqInfo info = new HttpReqInfo(reqUrl, reqBegTime, getTimestamp(), errorCode, errorMsg);
-        StatService.onHttpInfo(info);
     }
 
     public static Timestamp getTimestamp() {
